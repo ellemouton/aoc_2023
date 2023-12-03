@@ -28,14 +28,7 @@ func partOne() {
 			numStr += string(line[i])
 		}
 
-		switch len(numStr) {
-		case 1:
-			numStr += numStr
-		case 2:
-		default:
-			numStr = string(numStr[0]) +
-				string(numStr[len(numStr)-1])
-		}
+		numStr = string(numStr[0]) + string(numStr[len(numStr)-1])
 
 		i, err := strconv.Atoi(numStr)
 		check(err)

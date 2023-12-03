@@ -15,16 +15,16 @@ void partOne() {
 }
 
 void lineOp(String line) {
+  // Find all non-numbers and remove.
   String str = line.replaceAll(new RegExp(r'[^0-9]'), '');
 
-  if (str.length > 2) {
-    str = str[0] + str[str.length - 1];
-  } else if (str.length == 1) {
-    str = str[0] + str[0];
-  }
+  // Concat the first and last number collected.
+  str = str[0] + str[str.length - 1];
 
+  // Convert to an int.
   int n = int.parse(str);
 
+  // Increment the total.
   total += n;
 }
 
@@ -32,7 +32,5 @@ void forEachLine(Function(String) f) {
   File file = File(input);
   List<String> lines = file.readAsLinesSync();
 
-  for (String line in lines) {
-    f(line);
-  }
+  lines.forEach((line) => f(line));
 }

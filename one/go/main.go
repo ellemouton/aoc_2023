@@ -2,25 +2,23 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"strconv"
 	"unicode"
 )
 
+const (
+	inputFile = "input.txt"
+)
+
 func main() {
-	// Read file.
-	f, err := os.Open("../input.txt")
-	check(err)
-	defer f.Close()
+	partOne()
+}
 
-	var (
-		line    string
-		scanner = bufio.NewScanner(f)
-		total   int64
-	)
-	for scanner.Scan() {
-		line = scanner.Text()
-
+func partOne() {
+	var total int64
+	fn := func(line string) {
 		var numStr string
 		for i := 0; i < len(line); i++ {
 			if !isInt(string(line[i])) {
@@ -35,7 +33,8 @@ func main() {
 			numStr += numStr
 		case 2:
 		default:
-			numStr = string(numStr[0]) + string(numStr[len(numStr)-1])
+			numStr = string(numStr[0]) +
+				string(numStr[len(numStr)-1])
 		}
 
 		i, err := strconv.Atoi(numStr)
@@ -44,7 +43,26 @@ func main() {
 		total += int64(i)
 	}
 
+	forEachLine(fn)
+
 	print(total)
+}
+
+func forEachLine(fn func(string)) {
+	f, err := os.Open(fmt.Sprintf("../%s", inputFile))
+	check(err)
+	defer f.Close()
+
+	var (
+		line    string
+		scanner = bufio.NewScanner(f)
+	)
+	for scanner.Scan() {
+		line = scanner.Text()
+
+		fn(line)
+
+	}
 }
 
 func check(e error) {

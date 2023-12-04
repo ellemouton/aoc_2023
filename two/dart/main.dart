@@ -4,7 +4,60 @@ import 'dart:io';
 const input = "/Users/elle/projects/AOC_2023/two/input.txt";
 
 void main() {
-  partOne();
+  // partOne();
+  partTwo();
+}
+
+int totalPower = 0;
+
+void partTwo() {
+  forEachLine(input, (line) => lineOp2(line));
+
+  print(totalPower);
+}
+
+void lineOp2(String line) {
+  // Chop off the ID section.
+  int n2 = line.indexOf(":");
+  line = line.substring(n2 + 2);
+
+  // Replace all ; with ,.
+  line = line.replaceAll(';', ',');
+
+  List<String> groups = line.split(",");
+
+  Map<String, int> minCount = {
+    "red": 0,
+    "blue": 0,
+    "green": 0,
+  };
+
+  for (String g in groups) {
+    g = g.trim();
+
+    int n = g.indexOf(" ");
+    String countStr = g.substring(0, n);
+    int count = int.parse(countStr);
+
+    String word = g.substring(n + 1);
+
+    int? max = minCount[word];
+
+    if (max == null) {
+      throw "colour ${word} not found in $minCount";
+    }
+
+    if (count > max) {
+      minCount[word] = count;
+    }
+  }
+
+  int power = 1;
+  minCount.forEach((_, value) {
+    power *= value;
+  });
+
+  totalPower += power;
 }
 
 Map<String, int> contents = {

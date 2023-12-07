@@ -1,9 +1,34 @@
-import 'dart:io';
-
-//const input = "/Users/elle/projects/AOC_2023/six/example.txt";
-
 void main() {
-  partOne();
+  // partOne();
+  partTwo(p2Input);
+}
+
+Pair p2Example = Pair(71530, 940200);
+Pair p2Input = Pair(58819676, 434104122191218);
+
+void partTwo(Pair p) {
+  // Find the lower bound.
+
+  int lower = 0;
+  for (int i = 1; i < p.t; i++) {
+    if (i * (p.t - i) > p.d) {
+      lower = i;
+      break;
+    }
+  }
+
+  int upper = p.t;
+  for (int i = p.t; i > 0; i--) {
+    if (i * (p.t - i) > p.d) {
+      upper = i;
+      break;
+    }
+  }
+
+  print("lower is $lower");
+  print("upper is $upper");
+
+  print("num ways: ${upper - lower + 1}");
 }
 
 class Pair {

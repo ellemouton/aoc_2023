@@ -21,27 +21,25 @@ class Pair {
 Map<String, Pair> map = {};
 String instructions = "";
 List<String> starts = [];
+List<int> counts = [];
 
 void partTwo() {
   forEachLine(input, (line) => lineOp2(line));
 
-  print(starts);
+  for (int i = 0; i < starts.length; i++) {
+    if (map[starts[i]] == null) {
+      throw "bad";
+    }
 
-  bool found = false;
-  int count = 0;
-  while (!found) {
-    for (int i = 0; i < instructions.length; i++) {
-      count++;
+    int count = 0;
+    bool found = false;
+    while (!found) {
+      for (int j = 0; j < instructions.length; j++) {
+        count++;
 
-      bool left = false;
-      if (instructions[i] == "L") {
-        left = true;
-      }
-
-      int numFound = 0;
-      for (int i = 0; i < starts.length; i++) {
-        if (map[starts[i]] == null) {
-          throw "bad";
+        bool left = false;
+        if (instructions[j] == "L") {
+          left = true;
         }
 
         Pair p = map[starts[i]]!;
@@ -53,22 +51,20 @@ void partTwo() {
         }
 
         if (starts[i].endsWith("Z")) {
-          numFound++;
+          counts.add(count);
+          found = true;
+          break;
         }
-      }
-
-      if (numFound > 2) {
-        print(numFound);
-      }
-
-      if (numFound == starts.length) {
-        found = true;
-        break;
       }
     }
   }
 
-  print("count $count");
+  int f = counts[0];
+  for (int i = 1; i < counts.length; i++) {
+    f = lcm(f, counts[i]);
+  }
+
+  print(f);
 }
 
 void partOne() {
@@ -149,4 +145,15 @@ void forEachLine(String input, Function(String) f) {
   List<String> lines = file.readAsLinesSync();
 
   lines.forEach((line) => f(line));
+}
+
+int lcm(int a, int b) => (a * b) ~/ gcd(a, b);
+
+int gcd(int a, int b) {
+  while (b != 0) {
+    var t = b;
+    b = a % t;
+    a = t;
+  }
+  return a;
 }

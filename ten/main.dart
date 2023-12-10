@@ -59,16 +59,6 @@ const List<String> lookingRight = ["-", "F", "L"];
 List<List<Pipe>> maze = [];
 late Coord start;
 
-printMaze() {
-  print("---------");
-  maze.forEach((line) {
-    line.forEach((p) {
-      stdout.write(p.symbol);
-    });
-    stdout.write('\n');
-  });
-}
-
 void partOne() {
   forEachLine(input, (line) => lineOp1(line));
 
@@ -79,53 +69,32 @@ void partOne() {
   }
 
   // Choose 1 and follow its various paths until we get back to S.
-  int stepsToS = track(out[0], start);
+  Coord prev = start;
+  Coord current = out[0];
+  bool found = false;
+  int steps = 0;
+  while (!found) {
+    steps++;
 
-  print((stepsToS + 1) / 2);
-}
-
-// the int returned represents steps-to-S from this coordinate. if -1 is
-// returned then this coordinate doesnt lead to S.
-int track(Coord c, Coord prev) {
-  // First find all the next coords that can lead from this coord.
-  List<Coord> nextCoords = loop(c, prev);
-
-  // Now, mark that we have looked at this point so that we dont ever revisit it
-  // again.
-  maze[c.y][c.x].zero();
-
-  // There are 2 exit conditions:
-  // 1) the one is that there are no more places to travel to from this
-  //    coordinate.
-  // 2) one of the next places is the S point.
-  bool foundS = false;
-  nextCoords.forEach((c) {
-    if (c.x == start.x && c.y == start.y) {
-      foundS = true;
+    // First find all the next coords that can lead from this coord.
+    List<Coord> nextCoords = loop(current, prev);
+    if (nextCoords.length != 1) {
+      throw "bad";
     }
-  });
 
-  // Terminal path.
-  if (nextCoords.length == 0) {
-    return -1;
-  }
+    // Now, mark that we have looked at this point so that we dont ever revisit
+    // it again.
+    maze[current.y][current.x].zero();
 
-  // Exit if we found S. The 1 means that it took us 1 step from this point to
-  // find S.
-  if (foundS) {
-    return 1;
-  }
+    prev = current;
+    current = nextCoords[0];
 
-  // Otherwise, we continue the recursion for each of the next points.
-  for (Coord coord in nextCoords) {
-    int stepsToS = track(coord, c);
-
-    if (stepsToS > 0) {
-      return 1 + stepsToS;
+    if (current.x == start.x && current.y == start.y) {
+      found = true;
     }
   }
 
-  return -1;
+  print((steps + 1) / 2);
 }
 
 List<Coord> loop(Coord c, Coord prev) {

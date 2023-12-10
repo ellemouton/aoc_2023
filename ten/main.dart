@@ -3,7 +3,8 @@ import 'dart:io';
 const input = "/Users/elle/projects/AOC_2023/ten/input.txt";
 
 void main() {
-  partOne();
+  // partOne();
+  partTwo();
 }
 
 class Coord {
@@ -21,8 +22,20 @@ class Coord {
   }
 }
 
+class Quad {
+  // "true" for any of these means: inside.
+  bool topLeft;
+  bool topRight;
+  bool bottomLeft;
+  bool bottomRight;
+
+  Quad(this.topLeft, this.bottomLeft, this.topRight, this.bottomRight);
+}
+
 class Pipe {
   String symbol;
+  bool isLoopTile = false;
+  Quad? quad;
 
   Pipe(this.symbol);
 
@@ -30,24 +43,28 @@ class Pipe {
     return symbol == "S";
   }
 
-  zero() {
-    symbol = ".";
+  setQuad(bool tl, bool tr, bool bl, bool br) {
+    quad = Quad(tl, tr, bl, br);
+  }
+
+  setIsLoop() {
+    isLoopTile = true;
   }
 
   bool canLookLeft() {
-    return isS() || lookingLeft.contains(symbol);
+    return !isLoopTile && (isS() || lookingLeft.contains(symbol));
   }
 
   bool canLookRight() {
-    return isS() || lookingRight.contains(symbol);
+    return !isLoopTile && (isS() || lookingRight.contains(symbol));
   }
 
   bool canLookUp() {
-    return isS() || lookingUp.contains(symbol);
+    return !isLoopTile && (isS() || lookingUp.contains(symbol));
   }
 
   bool canLookDown() {
-    return isS() || lookingDown.contains(symbol);
+    return !isLoopTile && (isS() || lookingDown.contains(symbol));
   }
 }
 
@@ -59,32 +76,164 @@ const List<String> lookingRight = ["-", "F", "L"];
 List<List<Pipe>> maze = [];
 late Coord start;
 
+void partTwo() {
+  // Read in the input into maze & start.
+  forEachLine(input, (line) => lineOp1(line));
+
+  // Now, follow the loop path and make note of each coordinate that is part of
+  // the loop.
+  trackLoop((p) => {});
+
+  // Also set the start symbol to "x".
+  // Make sure that the start pipe is also seen as part of the loop.
+  maze[start.y][start.x].isLoopTile = true;
+
+  // Now, we go go from the top to bottom of the map in order to figure out
+  // which tiles are _in_ the loop. Since there is no way that the edge tiles
+  // can be in the loop, those are set to "outside". Then the first time we hit
+  // a loop tile, we switch to inside & start counting any non loop tiles for
+  // that column. When we then hit another loop tile, we switch to outside
+  // again and so on and so on.
+  int insideCount = 0;
+  for (int j = 0; j < maze.length; j++) {
+    Quad prevQuad = Quad(false, false, false, false);
+
+    for (int i = 0; i < maze[j].length; i++) {
+      Pipe p = maze[j][i];
+
+      // If this is not a loop tile, then we should be able to derive the
+      // inside/outside value by looking at the previous tile's top right or
+      // bottom right quads.
+      if (!p.isLoopTile) {
+        if (prevQuad.topRight != prevQuad.bottomRight) {
+          throw "unexpected";
+        }
+
+        bool inside = prevQuad.topRight;
+
+        Quad newQuad = Quad(inside, inside, inside, inside);
+
+        if (inside) {
+          insideCount++;
+        }
+
+        prevQuad = newQuad;
+        continue;
+      }
+
+      // This is a loop pipe. So now we set quads based on the previous tile's
+      // quads and the structure of this pipe.
+
+      if (p.symbol == "|") {
+        if (prevQuad.topRight != prevQuad.bottomRight) {
+          throw "unexpected";
+        }
+
+        bool o = prevQuad.topRight;
+
+        Quad newQuad = Quad(o, o, !o, !o);
+
+        prevQuad = newQuad;
+        continue;
+      }
+
+      if (p.symbol == "-") {
+        if (prevQuad.topRight != !prevQuad.bottomRight) {
+          throw "unexpected";
+        }
+
+        bool o = prevQuad.topRight;
+
+        Quad newQuad = Quad(o, !o, o, !o);
+
+        prevQuad = newQuad;
+        continue;
+      }
+
+      if (p.symbol == "F") {
+        if (prevQuad.topRight != prevQuad.bottomRight) {
+          throw "unexpected";
+        }
+
+        bool o = prevQuad.topRight;
+
+        Quad newQuad = Quad(o, o, o, !o);
+        prevQuad = newQuad;
+        continue;
+      }
+
+      if (p.symbol == "J") {
+        if (prevQuad.topRight != !prevQuad.bottomRight) {
+          throw "unexpected";
+        }
+
+        bool o = prevQuad.topRight;
+
+        Quad newQuad = Quad(o, !o, !o, !o);
+        prevQuad = newQuad;
+        continue;
+      }
+
+      if (p.symbol == "7") {
+        if (prevQuad.topRight != !prevQuad.bottomRight) {
+          throw "unexpected";
+        }
+
+        bool o = prevQuad.topRight;
+
+        Quad newQuad = Quad(o, !o, o, o);
+        prevQuad = newQuad;
+        continue;
+      }
+
+      if (p.symbol == "L") {
+        if (prevQuad.topRight != prevQuad.bottomRight) {
+          throw "unexpected";
+        }
+
+        bool o = prevQuad.topRight;
+
+        Quad newQuad = Quad(o, o, !o, o);
+        prevQuad = newQuad;
+        continue;
+      }
+    }
+  }
+
+  print(insideCount);
+}
+
 void partOne() {
   forEachLine(input, (line) => lineOp1(line));
 
+  int steps = 1;
+  trackLoop((p0) => steps++);
+
+  print((steps) / 2);
+}
+
+void trackLoop(Function(Coord) fn) {
   // Find one exit from S (there should be exactly 2 according to the problem).
   List<Coord> out = loopS(start);
   if (out.length != 2) {
     throw "more than two exits from S";
   }
 
-  // Choose 1 and follow its various paths until we get back to S.
   Coord prev = start;
   Coord current = out[0];
   bool found = false;
-  int steps = 0;
-  while (!found) {
-    steps++;
 
+  while (!found) {
     // First find all the next coords that can lead from this coord.
     List<Coord> nextCoords = loop(current, prev);
     if (nextCoords.length != 1) {
       throw "bad";
     }
 
-    // Now, mark that we have looked at this point so that we dont ever revisit
-    // it again.
-    maze[current.y][current.x].zero();
+    // Now, mark that this point is in the path so that we dont ever visit it
+    // again.
+    maze[current.y][current.x].isLoopTile = true;
+    fn(current);
 
     prev = current;
     current = nextCoords[0];
@@ -93,8 +242,6 @@ void partOne() {
       found = true;
     }
   }
-
-  print((steps + 1) / 2);
 }
 
 List<Coord> loop(Coord c, Coord prev) {

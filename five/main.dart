@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:io';
 
 const input = "/Users/elle/projects/AOC_2023/five/input.txt";
@@ -199,48 +198,6 @@ List<Range> convert(Range input, int mapIndex) {
   }
 
   return outputs;
-  /*
-
-    if (current.start < range.srcStart) {
-      // The whole range is completely outside of the map range.
-      if (current.end <= range.srcStart) {
-        outputs.add(Range(current.start, current.end));
-        done = true;
-        break;
-      }
-
-      outputs.add(Range(current.start, range.srcStart));
-      current = Range(range.srcStart, current.end - range.srcStart);
-      continue;
-    }
-
-    if (current.start >= end) {
-      continue;
-    }
-
-    // Else, we found a range for this input. Now need to determine how
-    // much of the input range falls under this same bucket.
-    int diff = current.start - range.srcStart;
-
-    // If input end is within the same range, then only 1 output.
-    if (current.end <= end) {
-      outputs.add(Range(range.destStart + diff, current.range));
-      done = true;
-      break;
-    }
-
-    // Else, we create an output for the part of the range covered.
-    outputs.add(Range(range.destStart + diff, end - (range.destStart + diff)));
-
-    current = Range(end, current.end - end);
-  }
-
-  if (!done) {
-    outputs.add(current);
-  }
-
-  return outputs;
-  */
 }
 
 int getSeedLocation(int seed) {

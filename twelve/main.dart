@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math';
 
 const input = "/Users/elle/projects/AOC_2023/twelve/input.txt";
 
@@ -24,23 +23,32 @@ class Group {
   Group(this.value, this.numUnknown, this.numBroken);
 }
 
+// answer = 7173
 void partOne() {
-  forEachLine(input, (line) => lineOp1(line));
+  forEachLine(input, (line) => lineOp1(line, 1));
 
   int total = 0;
   for (Line l in lines) {
-    int n = countConfigurations(l, "");
+    int n = countConfigurations(l.input, 0, l.nums);
     total += n;
   }
 
   print(total);
 }
 
-int countConfigurations(Line l, String inset) {
-  if (l.nums.length == 0) {
-    if (l.input.contains("#")) {
+int countConfigurations(String input, int inputIndex, List<int> nums) {
+  String remainingInput = input.substring(inputIndex);
+
+  // If there are no more numbers left to place, then this was either a valid
+  // config or not.
+  if (nums.length == 0) {
+    // It was not a valid config if the remainder of the line still had a
+    // manditory "#" that needed to be placed.
+    if (remainingInput.contains("#")) {
       return 0;
     }
+
+    // Otherwise, it was a single valid configuration.
     return 1;
   }
 
@@ -48,26 +56,25 @@ int countConfigurations(Line l, String inset) {
   // have. Do this by determining the tightest possible space that all the parts
   // can fit into if squashed to the end.
   int sumVals = 0;
-  l.nums.forEach((element) {
+  nums.forEach((element) {
     sumVals += element;
   });
 
-  int smallestSpace = sumVals + l.nums.length - 1;
+  int smallestSpace = sumVals + nums.length - 1;
 
   // final config should have this as the start value.
-  int maxStart = l.input.length - smallestSpace;
+  int maxStart = remainingInput.length - smallestSpace;
 
   int configs = 0;
   for (int start = 0; start <= maxStart; start++) {
-    String conf = "";
+    // String conf = "";
     bool skipConf = false;
     int lineIndex = 0;
 
-    // Add prefix dots.
-    for (int dot = 0; dot < start && lineIndex < l.input.length; dot++) {
-      conf += ".";
-
-      if (l.input[lineIndex] == "#") {
+    // Increase te index for each prefix dot.
+    for (int dot = 0; dot < start; dot++) {
+      // Exit early if this clashes with a manditory #.
+      if (remainingInput[lineIndex] == "#") {
         skipConf = true;
         break;
       }
@@ -79,12 +86,10 @@ int countConfigurations(Line l, String inset) {
       continue;
     }
 
-    // Add thing.
-    for (int thing = 0;
-        thing < l.nums[0] && lineIndex < l.input.length;
-        thing++) {
-      conf += "#";
-      if (l.input[lineIndex] == ".") {
+    // Add the #s.
+    for (int hashCount = 0; hashCount < nums[0]; hashCount++) {
+      // Exit early if this clashes with a manditory ".".
+      if (remainingInput[lineIndex] == ".") {
         skipConf = true;
         break;
       }
@@ -97,9 +102,9 @@ int countConfigurations(Line l, String inset) {
     }
 
     // If there is space, add a postfix dot.
-    if (conf.length < l.input.length && lineIndex < l.input.length) {
-      conf += ".";
-      if (l.input[lineIndex] == "#") {
+    if (lineIndex < remainingInput.length) {
+      // Exit early if this clashes with a manditory #.
+      if (remainingInput[lineIndex] == "#") {
         skipConf = true;
         continue;
       }
@@ -111,27 +116,36 @@ int countConfigurations(Line l, String inset) {
       continue;
     }
 
-    String totalInset = inset + conf;
-
-    configs += countConfigurations(
-        Line(l.input.substring(lineIndex), l.nums.sublist(1)), totalInset);
+    configs +=
+        countConfigurations(input, inputIndex + lineIndex, nums.sublist(1));
   }
 
   return configs;
 }
 
-void lineOp1(String line) {
+void lineOp1(String line, int mul) {
   String input = line.substring(0, line.indexOf(" "));
+
+  String finalInput = "";
+  for (int m = 0; m < mul; m++) {
+    finalInput += input;
+
+    if (m < mul - 1) {
+      finalInput += "?";
+    }
+  }
 
   String numsStr = line.substring(line.indexOf(" ") + 1);
   List<String> nums = numsStr.split(",");
 
   List<int> ns = [];
-  for (int i = 0; i < nums.length; i++) {
-    ns.add(int.parse(nums[i]));
+  for (int m = 0; m < mul; m++) {
+    for (int i = 0; i < nums.length; i++) {
+      ns.add(int.parse(nums[i]));
+    }
   }
 
-  lines.add(Line(input, ns));
+  lines.add(Line(finalInput, ns));
 }
 
 void forEachLine(String input, Function(String) f) {

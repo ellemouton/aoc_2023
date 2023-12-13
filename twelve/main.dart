@@ -3,7 +3,8 @@ import 'dart:io';
 const input = "/Users/elle/projects/AOC_2023/twelve/input.txt";
 
 void main() {
-  partOne();
+  // partOne();
+  partTwo();
 }
 
 class Line {
@@ -41,6 +42,19 @@ class Cache {
   String _cacheKey(int remainingNums, int lineIndex) {
     return "$remainingNums-$lineIndex";
   }
+}
+
+void partTwo() {
+  forEachLine(input, (line) => lineOp1(line, 5));
+
+  int total = 0;
+  for (Line l in lines) {
+    Cache cache = Cache();
+    int n = countConfigurations(l.input, 0, l.nums, cache);
+    total += n;
+  }
+
+  print(total);
 }
 
 void partOne() {

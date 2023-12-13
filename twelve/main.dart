@@ -23,21 +23,49 @@ class Group {
   Group(this.value, this.numUnknown, this.numBroken);
 }
 
-// answer = 7173
+class Cache {
+  Map<String, int> _cache = {};
+
+  void add(int remainingNums, int lineIndex, int count) {
+    String key = _cacheKey(remainingNums, lineIndex);
+
+    _cache[key] = count;
+  }
+
+  int? getCount(int remainingNums, int lineIndex) {
+    String key = _cacheKey(remainingNums, lineIndex);
+
+    return _cache[key];
+  }
+
+  String _cacheKey(int remainingNums, int lineIndex) {
+    return "$remainingNums-$lineIndex";
+  }
+}
+
 void partOne() {
   forEachLine(input, (line) => lineOp1(line, 1));
 
   int total = 0;
   for (Line l in lines) {
-    int n = countConfigurations(l.input, 0, l.nums);
+    Cache cache = Cache();
+    int n = countConfigurations(l.input, 0, l.nums, cache);
     total += n;
   }
 
   print(total);
 }
 
-int countConfigurations(String input, int inputIndex, List<int> nums) {
+int countConfigurations(
+    String input, int inputIndex, List<int> nums, Cache cache) {
   String remainingInput = input.substring(inputIndex);
+
+  // Check the cache to see if we have a stored value for this config. Return
+  // it if we do.
+  int? count = cache.getCount(nums.length, inputIndex);
+  if (count != null) {
+    return count;
+  }
 
   // If there are no more numbers left to place, then this was either a valid
   // config or not.
@@ -116,9 +144,12 @@ int countConfigurations(String input, int inputIndex, List<int> nums) {
       continue;
     }
 
-    configs +=
-        countConfigurations(input, inputIndex + lineIndex, nums.sublist(1));
+    configs += countConfigurations(
+        input, inputIndex + lineIndex, nums.sublist(1), cache);
   }
+
+  // Before returning, ensure to add this result to the cache.
+  cache.add(nums.length, inputIndex, configs);
 
   return configs;
 }

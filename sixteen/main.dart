@@ -11,7 +11,7 @@ List<List<String>> map = [];
 
 Map<String, bool> energised = {};
 
-Map<String, int> visited = {};
+Map<String, bool> visited = {};
 
 void partTwo() {
   forEachLine(input, (line) => lineOp1(line));
@@ -65,10 +65,9 @@ void partTwo() {
 void partOne() {
   forEachLine(input, (line) => lineOp1(line));
 
-  int count = traverse(Coord(0, 0, direction.right));
+  traverse(Coord(0, 0, direction.right));
 
   print(energised.length);
-  print(count);
 }
 
 enum direction {
@@ -117,25 +116,19 @@ class Coord {
       throw "bad";
     }
 
-    visited[keyWithDirection] = -1;
+    visited[keyWithDirection] = false;
   }
 
-  markEnergised(int num) {
+  markEnergised() {
     String keyWithDirection = "$x-$y-$d";
 
-    visited[keyWithDirection] = num;
+    visited[keyWithDirection] = true;
   }
 
   bool partOfThisLoop() {
     String keyWithDirection = "$x-$y-$d";
 
-    return visited[keyWithDirection] == -1;
-  }
-
-  int getCount() {
-    String keyWithDirection = "$x-$y-$d";
-
-    return visited[keyWithDirection]!;
+    return visited[keyWithDirection] == false;
   }
 
   bool alreadyDone() {
@@ -165,32 +158,25 @@ class Coord {
   }
 }
 
-int traverse(Coord c) {
-  // c.display();
-
+void traverse(Coord c) {
   Map<String, bool> localCache = {};
 
   // Stopping conditions:
   // 1) the coordinate is off the map.
   if (c.x < 0 || c.y < 0 || c.x >= map[0].length || c.y >= map.length) {
-    return 0;
+    return;
   }
 
   // 2) We've entered this tile in this direction in the current loop we are on
   // (in other words we would cycle if we didnt stop now).
   if (c.partOfThisLoop()) {
-    return 0;
+    return;
   }
 
   // 3) We've checked this tile in this direction in the past (in another loop)
-  // and so we can just get the already calculated count from there.
+  // and so we can just return.
   if (c.alreadyDone()) {
-    return c.getCount();
-  }
-
-  int totalEnergised = 1;
-  if (c.marked()) {
-    totalEnergised = 0;
+    return;
   }
 
   c.markBusy();
@@ -200,62 +186,60 @@ int traverse(Coord c) {
   switch (map[c.y][c.x]) {
     // If this is a "." then we just continue the same trajectory.
     case ".":
-      totalEnergised += traverse(c.move(c.d));
+      traverse(c.move(c.d));
 
     // If approaching from left/right then continue. Else split with new
     // left & right trajectories.
     case "-":
       if (c.d == direction.left || c.d == direction.right) {
-        totalEnergised += traverse(c.move(c.d));
+        traverse(c.move(c.d));
       } else {
-        totalEnergised += traverse(c.move(direction.left));
-        totalEnergised += traverse(c.move(direction.right));
+        traverse(c.move(direction.left));
+        traverse(c.move(direction.right));
       }
 
     case "|":
       if (c.d == direction.up || c.d == direction.down) {
-        totalEnergised += traverse(c.move(c.d));
+        traverse(c.move(c.d));
       } else {
-        totalEnergised += traverse(c.move(direction.up));
-        totalEnergised += traverse(c.move(direction.down));
+        traverse(c.move(direction.up));
+        traverse(c.move(direction.down));
       }
 
     case "\\":
       switch (c.d) {
         case direction.up:
-          totalEnergised += traverse(c.move(direction.left));
+          traverse(c.move(direction.left));
 
         case direction.down:
-          totalEnergised += traverse(c.move(direction.right));
+          traverse(c.move(direction.right));
 
         case direction.left:
-          totalEnergised += traverse(c.move(direction.up));
+          traverse(c.move(direction.up));
 
         case direction.right:
-          totalEnergised += traverse(c.move(direction.down));
+          traverse(c.move(direction.down));
       }
 
     case "/":
       switch (c.d) {
         case direction.up:
-          totalEnergised += traverse(c.move(direction.right));
+          traverse(c.move(direction.right));
 
         case direction.down:
-          totalEnergised += traverse(c.move(direction.left));
+          traverse(c.move(direction.left));
 
         case direction.left:
-          totalEnergised += traverse(c.move(direction.down));
+          traverse(c.move(direction.down));
 
         case direction.right:
-          totalEnergised += traverse(c.move(direction.up));
+          traverse(c.move(direction.up));
       }
   }
 
-  c.markEnergised(totalEnergised);
-  // if (!c.marked()) {
-  // }
+  c.markEnergised();
 
-  return totalEnergised;
+  return;
 }
 
 void lineOp1(String line) {

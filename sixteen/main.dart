@@ -16,18 +16,59 @@ Map<String, int> visited = {};
 void partTwo() {
   forEachLine(input, (line) => lineOp1(line));
 
-  int count = traverse(Coord(0, 0, direction.right));
+  int max = 0;
 
-  print(energised.length);
-  print(count);
+  // Check the top row. For each block, have an initial trajectory of downward.
+  for (int j = 0; j < map[0].length; j++) {
+    traverse(Coord(j, 0, direction.down));
+    int count = energised.length;
+    if (count > max) {
+      max = count;
+    }
+    energised = {};
+    visited = {};
+  }
+
+  // Check the bottom row. For each block, have an initial trajectory of upwards.
+  for (int j = 0; j < map[map.length - 1].length; j++) {
+    traverse(Coord(j, map.length - 1, direction.up));
+    int count = energised.length;
+    if (count > max) {
+      max = count;
+    }
+    energised = {};
+    visited = {};
+  }
+
+  // Side ways.
+  for (int i = 0; i < map.length; i++) {
+    traverse(Coord(0, i, direction.right));
+    int count = energised.length;
+    if (count > max) {
+      max = count;
+    }
+    energised = {};
+    visited = {};
+
+    traverse(Coord(map[i].length - 1, i, direction.left));
+    count = energised.length;
+    if (count > max) {
+      max = count;
+    }
+    energised = {};
+    visited = {};
+  }
+
+  print(max);
 }
 
 void partOne() {
   forEachLine(input, (line) => lineOp1(line));
 
-  traverse(Coord(0, 0, direction.right));
+  int count = traverse(Coord(0, 0, direction.right));
 
   print(energised.length);
+  print(count);
 }
 
 enum direction {
@@ -125,6 +166,10 @@ class Coord {
 }
 
 int traverse(Coord c) {
+  // c.display();
+
+  Map<String, bool> localCache = {};
+
   // Stopping conditions:
   // 1) the coordinate is off the map.
   if (c.x < 0 || c.y < 0 || c.x >= map[0].length || c.y >= map.length) {
@@ -206,9 +251,9 @@ int traverse(Coord c) {
       }
   }
 
-  if (!c.marked()) {
-    c.markEnergised(totalEnergised);
-  }
+  c.markEnergised(totalEnergised);
+  // if (!c.marked()) {
+  // }
 
   return totalEnergised;
 }

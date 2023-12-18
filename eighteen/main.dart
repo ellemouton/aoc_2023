@@ -99,7 +99,7 @@ void partOne() {
   forEachLine(input, (line) => lineOp1(line));
 
   Coord current = Coord(0, 0, "F");
-  //trench.add(current);
+  // trench.add(current);
   int minY = 0;
   int minX = 0;
   int maxX = 0;
@@ -144,12 +144,19 @@ void partOne() {
       maze.add([]);
     }
 
-    while (maze[coord.y].length <= maxX) {
-      maze[coord.y].add(Pipe("."));
-    }
+    maze[coord.y].add(Pipe(coord.x, coord.symbol));
 
-    maze[coord.y][coord.x].symbol = coord.symbol;
-    maze[coord.y][coord.x].isLoopTile = true;
+    maze[coord.y].sort((a, b) {
+      if (a.x == b.x) {
+        return 0;
+      }
+
+      if (a.x < b.x) {
+        return -1;
+      }
+
+      return 1;
+    });
   });
 
   print(trench.length + countInside());

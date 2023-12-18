@@ -26,34 +26,30 @@ class Quad {
 }
 
 class Pipe {
+  int x;
   String symbol;
-  bool isLoopTile = false;
   Quad? quad;
 
-  Pipe(this.symbol);
-
-  bool isS() {
-    return symbol == "S";
-  }
+  Pipe(this.x, this.symbol);
 
   setQuad(bool tl, bool tr, bool bl, bool br) {
     quad = Quad(tl, tr, bl, br);
   }
 
   bool canLookLeft() {
-    return !isLoopTile && (isS() || lookingLeft.contains(symbol));
+    return lookingLeft.contains(symbol);
   }
 
   bool canLookRight() {
-    return !isLoopTile && (isS() || lookingRight.contains(symbol));
+    return lookingRight.contains(symbol);
   }
 
   bool canLookUp() {
-    return !isLoopTile && (isS() || lookingUp.contains(symbol));
+    return lookingUp.contains(symbol);
   }
 
   bool canLookDown() {
-    return !isLoopTile && (isS() || lookingDown.contains(symbol));
+    return lookingDown.contains(symbol);
   }
 }
 
@@ -76,28 +72,41 @@ int countInside() {
   for (int j = 0; j < maze.length; j++) {
     Quad prevQuad = Quad(false, false, false, false);
 
+    int nextX = 0;
+
     for (int i = 0; i < maze[j].length; i++) {
       Pipe p = maze[j][i];
 
-      // If this is not a loop tile, then we should be able to derive the
-      // inside/outside value by looking at the previous tile's top right or
-      // bottom right quads.
-      if (!p.isLoopTile) {
-        if (prevQuad.topRight != prevQuad.bottomRight) {
-          throw "unexpected";
-        }
+      bool inside = prevQuad.topRight;
 
-        bool inside = prevQuad.topRight;
-
-        Quad newQuad = Quad(inside, inside, inside, inside);
-
+      // If the x coord is not our expected x coord, then we skipped some
+      // non-border tiles that we should quickly account for.
+      if (nextX != p.x) {
         if (inside) {
-          insideCount++;
+          insideCount += (p.x - nextX);
         }
-
-        prevQuad = newQuad;
-        continue;
       }
+      nextX = p.x + 1;
+
+      // // If this is not a loop tile, then we should be able to derive the
+      // // inside/outside value by looking at the previous tile's top right or
+      // // bottom right quads.
+      // if (!p.isLoopTile) {
+      //   if (prevQuad.topRight != prevQuad.bottomRight) {
+      //     throw "unexpected";
+      //   }
+
+      //   bool inside = prevQuad.topRight;
+
+      //   Quad newQuad = Quad(inside, inside, inside, inside);
+
+      //   if (inside) {
+      //     insideCount++;
+      //   }
+
+      //   prevQuad = newQuad;
+      //   continue;
+      // }
 
       // This is a loop pipe. So now we set quads based on the previous tile's
       // quads and the structure of this pipe.

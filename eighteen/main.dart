@@ -4,7 +4,8 @@ import 'ten.dart';
 const input = "/Users/elle/projects/AOC_2023/eighteen/input.txt";
 
 void main() {
-  partOne();
+  // partOne();
+  partTwo();
 }
 
 enum direction { left, right, up, down }
@@ -97,7 +98,15 @@ List<Instruction> instructs = [];
 
 void partOne() {
   forEachLine(input, (line) => lineOp1(line));
+  calc();
+}
 
+void partTwo() {
+  forEachLine(input, (line) => lineOp2(line));
+  calc();
+}
+
+void calc() {
   Coord current = Coord(0, 0, "F");
   // trench.add(current);
   int minY = 0;
@@ -133,11 +142,15 @@ void partOne() {
     }
   }
 
+  print("h1");
+
   trench.forEach((coord) {
     coord.x += minX.abs();
     coord.y += minY.abs();
     maxX += minX.abs();
   });
+
+  print("h2");
 
   trench.forEach((coord) {
     while (maze.length <= coord.y) {
@@ -145,19 +158,19 @@ void partOne() {
     }
 
     maze[coord.y].add(Pipe(coord.x, coord.symbol));
-
-    maze[coord.y].sort((a, b) {
-      if (a.x == b.x) {
-        return 0;
-      }
-
-      if (a.x < b.x) {
-        return -1;
-      }
-
-      return 1;
-    });
   });
+
+  maze.forEach((element) => element.sort((a, b) {
+        if (a.x == b.x) {
+          return 0;
+        }
+
+        if (a.x < b.x) {
+          return -1;
+        }
+
+        return 1;
+      }));
 
   print(trench.length + countInside());
 }
@@ -167,6 +180,28 @@ void lineOp1(String line) {
   List<String> parts = line.split(" ");
 
   instructs.add(Instruction(parts[0], int.parse(parts[1])));
+}
+
+void lineOp2(String line) {
+  line = line.substring(line.indexOf("(") + 2, line.length - 1);
+
+  String hex = line.substring(0, 5);
+  int i = int.parse(hex, radix: 16);
+
+  int n = int.parse(line.substring(5));
+  String d = "";
+  switch (n) {
+    case 0:
+      d = "R";
+    case 1:
+      d = "D";
+    case 2:
+      d = "L";
+    case 3:
+      d = "U";
+  }
+
+  instructs.add(Instruction(d, i));
 }
 
 void forEachLine(String input, Function(String) f) {

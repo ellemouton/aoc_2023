@@ -85,7 +85,199 @@ Letter strToLetter(String s) {
 }
 
 void main() {
-  partOne();
+  // partOne();
+  partTwo();
+}
+
+class BoundSet {
+  Bounds x = Bounds(1, 4000);
+  Bounds m = Bounds(1, 4000);
+  Bounds a = Bounds(1, 4000);
+  Bounds s = Bounds(1, 4000);
+
+  BoundSet() {}
+
+  BoundSet.copy(this.s, this.m, this.a, this.x);
+
+  BoundSet copy() {
+    return BoundSet.copy(s.copy(), m.copy(), a.copy(), x.copy());
+  }
+
+  int combo() {
+    return x.range() * m.range() * a.range() * s.range();
+  }
+
+  display() {
+    print(
+        "x(${x.display()}) m(${m.display()}) a(${a.display()}) s(${s.display()})");
+  }
+
+  chopPass(Check check) {
+    if (check.isJustDest()) {
+      return;
+    }
+
+    switch (check.letter!) {
+      case Letter.x:
+        if (check.greaterThan!) {
+          if (x.min <= check.number!) {
+            x.min = check.number! + 1;
+          }
+        } else {
+          if (x.max >= check.number!) {
+            x.max = check.number! - 1;
+          }
+        }
+      case Letter.m:
+        if (check.greaterThan!) {
+          if (m.min <= check.number!) {
+            m.min = check.number! + 1;
+          }
+        } else {
+          if (m.max >= check.number!) {
+            m.max = check.number! - 1;
+          }
+        }
+      case Letter.a:
+        if (check.greaterThan!) {
+          if (a.min <= check.number!) {
+            a.min = check.number! + 1;
+          }
+        } else {
+          if (a.max >= check.number!) {
+            a.max = check.number! - 1;
+          }
+        }
+      case Letter.s:
+        if (check.greaterThan!) {
+          if (s.min <= check.number!) {
+            s.min = check.number! + 1;
+          }
+        } else {
+          if (s.max >= check.number!) {
+            s.max = check.number! - 1;
+          }
+        }
+    }
+  }
+
+  chopFail(Check check) {
+    switch (check.letter!) {
+      case Letter.x:
+        if (check.greaterThan!) {
+          if (x.max > check.number!) {
+            x.max = check.number!;
+          }
+        } else {
+          if (x.min < check.number!) {
+            x.min = check.number!;
+          }
+        }
+      case Letter.m:
+        if (check.greaterThan!) {
+          if (m.max > check.number!) {
+            m.max = check.number!;
+          }
+        } else {
+          if (m.min < check.number!) {
+            m.min = check.number!;
+          }
+        }
+      case Letter.a:
+        if (check.greaterThan!) {
+          if (a.max > check.number!) {
+            a.max = check.number!;
+          }
+        } else {
+          if (a.min < check.number!) {
+            a.min = check.number!;
+          }
+        }
+      case Letter.s:
+        if (check.greaterThan!) {
+          if (s.max > check.number!) {
+            s.max = check.number!;
+          }
+        } else {
+          if (s.min < check.number!) {
+            s.min = check.number!;
+          }
+        }
+    }
+  }
+}
+
+class Bounds {
+  int min = 1;
+  int max = 4000;
+
+  String display() {
+    return "$min-$max";
+  }
+
+  int range() {
+    if (max < min) {
+      return 0;
+    }
+
+    return max - min + 1;
+  }
+
+  Bounds(this.min, this.max);
+
+  Bounds copy() {
+    return Bounds(min, max);
+  }
+}
+
+void partTwo() {
+  forEachLine(input, (line) => lineOp1(line));
+
+  List<BoundSet> sets = doThings(BoundSet(), "A");
+
+  int total = 0;
+  sets.forEach((element) {
+    total += element.combo();
+  });
+
+  print(total);
+}
+
+List<BoundSet> doThings(BoundSet startingSet, String targetDest) {
+  List<BoundSet> res = [];
+  workflows.forEach((key, checks) {
+    // For each check with the target destination.
+    for (int i = 0; i < checks.length; i++) {
+      // If we find an "A" destination, then initiate a new bounds and
+      // chop so that all previous checks in this set _fail_ but this one
+      // should pass.
+      if (checks[i].dest != targetDest) {
+        continue;
+      }
+
+      // Construct new bounds.
+      BoundSet bounds = startingSet.copy();
+      for (int j = 0; j < i; j++) {
+        // every check before should fail.
+        bounds.chopFail(checks[j]);
+      }
+
+      // This check should pass.
+      bounds.chopPass(checks[i]);
+
+      // If this is the "in" workflow, then we are done here.
+      if (key == "in") {
+        res.add(bounds);
+        return;
+      }
+
+      // Now, we need to do some recursion to find the bounds that would lead to
+      // this workflow.
+      res.addAll(doThings(bounds, key));
+    }
+  });
+
+  return res;
 }
 
 void partOne() {
